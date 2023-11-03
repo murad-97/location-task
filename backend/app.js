@@ -1,19 +1,13 @@
-const express = require("express");
+const express = require('express');
+const sqlite3 = require('sqlite3').verbose();
+const bodyParser = require('body-parser');
 const cors = require("cors");
-const sqlite3 = require("sqlite3").verbose();
-const bodyParser = require("body-parser");
 
 const app = express();
 const port = 3500;
-app.use(
-  cors({
-    origin: 'http://localhost:3000',
-    credentials: true,
-  })
-);
 
 // Create a connection to the SQLite database
-const db = new sqlite3.Database("locations.db");
+const db = new sqlite3.Database('locations.db');
 
 db.run(`
   CREATE TABLE IF NOT EXISTS locations (
@@ -24,16 +18,22 @@ db.run(`
     LNG REAL NOT NULL
   )
 `);
+app.use(
+  cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  })
+);
 
 app.use(bodyParser.json());
 
-
+// Define API endpoints for CRUD operations
 
 // Create a new location
-app.post("/locations", (req, res) => {
+app.post('/locations', (req, res) => {
   const { Name, Notes, LAT, LNG } = req.body;
   db.run(
-    "INSERT INTO locations (Name, Notes, LAT, LNG) VALUES (?, ?, ?, ?)",
+    'INSERT INTO locations (Name, Notes, LAT, LNG) VALUES (?, ?, ?, ?)',
     [Name, Notes, LAT, LNG],
     function (err) {
       if (err) {
@@ -46,10 +46,10 @@ app.post("/locations", (req, res) => {
 });
 
 // Get all locations
-app.get("/locations", (req, res) => {
-  db.all("SELECT * FROM locations", (err, rows) => {
+app.get('/locations', (req, res) => {
+  db.all('SELECT * FROM locations', (err, rows) => {
     if (err) {
-      res.status(500).json({ error: "Error retrieving locations" });
+      res.status(500).json({ error: 'Error retrieving locations' });
       return;
     }
     res.json(rows);
@@ -57,32 +57,35 @@ app.get("/locations", (req, res) => {
 });
 
 // Update a location by ID
-app.put("/locations/:id", (req, res) => {
+app.put('/locations/:id', (req, res) => {
   const { Name, Notes, LAT, LNG } = req.body;
   const { id } = req.params;
   db.run(
-    "UPDATE locations SET Name = ?, Notes = ?, LAT = ?, LNG = ? WHERE ID = ?",
+    'UPDATE locations SET Name = ?, Notes = ?, LAT = ?, LNG = ? WHERE ID = ?',
     [Name, Notes, LAT, LNG, id],
     function (err) {
       if (err) {
-        res.status(500).json({ error: "Error updating location" });
+        res.status(500).json({ error: 'Error updating location' });
         return;
       }
-      res.json({ message: "Location updated successfully" });
+      res.json({ message: 'Location updated successfully' });
     }
   );
 });
 
 // Delete a location by ID
-app.delete("/locations/:id", (req, res) => {
+app.delete('/locations/:id', (req, res) => {
   const { id } = req.params;
-  db.run("DELETE FROM locations WHERE ID = ?", id, function (err) {
+  db.run('DELETE FROM locations WHERE ID = ?', id, function (err) {
     if (err) {
-      res.status(500).json({ error: "Error deleting location" });
+      res.status(500).json({ error: 'Error deleting location' });
       return;
     }
-    res.json({ message: "Location deleted successfully" });
+    res.json({ message: 'Location deleted successfully' });
   });
 });
 
-
+// Start the server
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
